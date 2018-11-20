@@ -1,9 +1,13 @@
+%ifndef CONTROL_PARAMETROS
+%define CONTROL_PARAMETROS
+
 %define terminacion_normal 0                  ; terminacion normal
 %define terminacion_anormal_archEntrada 1     ; terminacion anormal por error en el archivo de entrada
 %define terminacion_anormal_archSalida  2     ; terminacion anormal por error en el archivo de salida
 %define terminacion_anormal 3				  ; terminacion anormal por otras causas
 
-;%include "automata_lexico.asm"
+%include "automata_lexico.asm"
+%include "contador_metricas.asm"
 
 section .data
 	mensaje    db "hola"
@@ -144,3 +148,6 @@ _exit :
     mov EAX,1   ; sys_exit
 	pop EBX     ; condicion de terminacion.
 	int 0x80    ; genera interrupcion.
+
+
+%endif;CONTROL_PARAMETROS

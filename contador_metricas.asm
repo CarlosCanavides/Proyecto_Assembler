@@ -1,3 +1,6 @@
+%ifndef CONTADOR_METRICAS
+%define CONTADOR_METRICAS
+
 section .data
 	cant_letras dw 0   ; Inicializo un espacio en 0 para la cantidad de letras
 	cant_palabras dw 0 ; Inicializo un espacio en 0 para la cantidad de palabras
@@ -52,4 +55,7 @@ reestablecer_metricas:
 	mov [cant_palabras], DWORD 0x0	; Vuelvo a 0 la cantidad de palabras
 	mov [cant_lineas], DWORD 0x0	; Vuelvo a 0 la cantidad de lineas
 	mov [cant_parrafos], DWORD 0x0	; Vuelvo a 0 la cantidad de parrafos
-	ret 							; Retorno de la subrutinat
+	ret 							; Retorno de la subrutina
+
+%endif;CONTADOR_METRICAS
+
