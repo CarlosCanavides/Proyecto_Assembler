@@ -33,74 +33,74 @@ _start :
 	jmp _exit
 
 ceroParametros :
-			    mov  EAX, 8                 ; sys_creat
-   			    mov  EBX, file_temp         ; EBX = nombre del archivo temporal.
-   			    mov  ECX, 0777              ; permiso RWE para todos los usuarios.
-   			    int  0x80                   ; genera interrrupcion.
+	mov  EAX, 8                 ; sys_creat
+   	mov  EBX, file_temp         ; EBX = nombre del archivo temporal.
+   	mov  ECX, 0777              ; permiso RWE para todos los usuarios.
+   	int  0x80                   ; genera interrrupcion.
 
-   			    mov [fd_entrada],EAX        ; fd_entrada = EAX;
+   	mov [fd_entrada],EAX        ; fd_entrada = EAX;
 
-   			    leerCaracter :
-				   			    mov EAX, 3					; sys_read
-				   			    mov EBX, 0                  ; indica ingreso por consola STDIN.
-				   			    mov ECX, input              ; lo ingresado por usuario se almacenara en input.
-				   			    mov EDX, 1                  ; longitud de lo que se leera por consola.
-				   			    int 0x80                    ; genera interrupcion.
+   	leerCaracter :
+		mov EAX, 3					; sys_read
+		mov EBX, 0                  ; indica ingreso por consola STDIN.
+		mov ECX, input              ; lo ingresado por usuario se almacenara en input.
+		mov EDX, 1                  ; longitud de lo que se leera por consola.
+		int 0x80                    ; genera interrupcion.
 
-				   			    cmp EAX,0                   ; Detecta la secuencia de escape para el fin del ingreso por teclado (Ctrl+D).
-				   			    je  continuar				; si se termino el ingreso por teclado se procede a calcular las metricas del archivo temporal.
+		cmp EAX,0                   ; Detecta la secuencia de escape para el fin del ingreso por teclado (Ctrl+D).
+		je  continuar				; si se termino el ingreso por teclado se procede a calcular las metricas del archivo temporal.
 
-				   			    mov EAX, 4                  ; sys_write
-				   			    mov EBX, [fd_entrada]	    ; indica que se escriba por fd_entrada
-				   			    mov ECX, input              ; texto a escribir.
-				   			    mov EDX, 1                  ; longitud del texto a escribir.
-				   			    int 0x80                    ; genera interrupcion.
+		mov EAX, 4                  ; sys_write
+		mov EBX, [fd_entrada]	    ; indica que se escriba por fd_entrada
+		mov ECX, input              ; texto a escribir.
+		mov EDX, 1                  ; longitud del texto a escribir.
+		int 0x80                    ; genera interrupcion.
 
-				   			    jmp leerCaracter            ; se vuelve a leer otro caracter.
+		jmp leerCaracter            ; se vuelve a leer otro caracter.
 
-				continuar :
-						    push terminacion_normal         ; parametriza la condicion de terminacion.
-						    jmp _exit                       ; se ejecuta rutina de finalizacion.
+	continuar :
+		push terminacion_normal         ; parametriza la condicion de terminacion.
+		jmp _exit                       ; se ejecuta rutina de finalizacion.
 
 unParametro  :
-			  mov EAX,5                    ; sys_open
-			  mov ECX,0                    ; modo solo lectura, para el archivo.  
-			  mov EDX,0777                 ; permiso RWE para todos los usuarios.
-			  int 0x80                     ; genera interrupcion.
+	mov EAX,5                    ; sys_open
+	mov ECX,0                    ; modo solo lectura, para el archivo.  
+	mov EDX,0777                 ; permiso RWE para todos los usuarios.
+	int 0x80                     ; genera interrupcion.
 
-			  mov [fd_entrada],EAX         ; fd_entrada = EAX
+	mov [fd_entrada],EAX         ; fd_entrada = EAX
 
-			  jmp _exit
+	jmp _exit
 
 dosParametros :
 			   jmp _exit
 
 abrirArchivo  :
-			   mov EAX,5                   ; sys_open
-			   mov ECX,2                   ; modo lectura y escritura, para el archivo.  
-			   mov EDX,0777                ; permiso RWE para todos los usuarios.
-			   int 0x80                    ; genera interrupcion.
-			   ret                         ; retorno
+    mov EAX,5                  ; sys_open
+    mov ECX,2                  ; modo lectura y escritura, para el archivo.  
+	mov EDX,0777               ; permiso RWE para todos los usuarios.
+	int 0x80                   ; genera interrupcion.
+	ret                        ; retorno
 
 cerrarArchivos :
-                mov EAX,6                  ; sys_close
-                mov EBX,[fd_entrada]       ; indica puntero a archivo de entrada.
-                int 0x80                   ; genera interrrupcion.
+	mov EAX,6                  ; sys_close
+    mov EBX,[fd_entrada]       ; indica puntero a archivo de entrada.
+    int 0x80                   ; genera interrrupcion.
 
-                mov EAX,6                  ; sys_close
-                mov EBX,[fd_salida]        ; indica puntero a archivo de salida.
-                int 0x80                   ; genera interrrupcion.
+    mov EAX,6                  ; sys_close
+    mov EBX,[fd_salida]        ; indica puntero a archivo de salida.
+    int 0x80                   ; genera interrrupcion.
 
-                ret                        ; retorno
+    ret                        ; retorno
 
 calcularMetricas :
-				  mov EAX, 3			   ; sys_read
-   			      mov EBX, [fd_entrada]    ; indica ingreso por consola fd_entrada.
-   			      mov ECX, input           ; input  = lugar donde se almacenara lo leido del archivo de entrada.
-   			      mov EDX, 1               ; 1 byte = longitud de lo que se leera del archivo de entrada.
-   			      int 0x80                 ; genera interrupcion.
+	mov EAX, 3			     ; sys_read
+    mov EBX, [fd_entrada]    ; indica ingreso por consola fd_entrada.
+    mov ECX, input           ; input  = lugar donde se almacenara lo leido del archivo de entrada.
+    mov EDX, 1               ; 1 byte = longitud de lo que se leera del archivo de entrada.
+    int 0x80                 ; genera interrupcion.
 
 _exit :
-	   mov EAX,1   ; sys_exit
-	   pop EBX     ; condicion de terminacion.
-	   int 0x80    ; genera interrupcion.
+    mov EAX,1   ; sys_exit
+	pop EBX     ; condicion de terminacion.
+	int 0x80    ; genera interrupcion.
