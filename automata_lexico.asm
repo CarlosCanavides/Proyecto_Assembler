@@ -8,30 +8,26 @@
 section .data
 	estado_actual dd estado_nueva_linea ; Inicializo el espacio del estado actual
 										; con el estado de una nueva linea
+										
 
-section .text
-	global _start ; Dev only
-	global analizar_caracter ; Rutina inicial del automata
-
-_start: ; Dev only
-
-; Espera el ultimo caracter leido en el registro ECX
+; Espera el ultimo caracter leido en el registro CL (8 LSB de ECX)
 analizar_caracter:
 	push EAX 			 ; Preseva el contenido de EAX, sera usado para analizar el caracter
 	call [estado_actual] ; Salto a la primera instruccion de la rutina del estado actual 
+	pop EAX 			 ; Recupero el contenido de EAX
+	ret 				 ; Retorno de la subrutina
 
-	mov EAX, 1 ; Dev only
-	int 0x80   ; Dev only
 
 
-; Espera el ultimo caracter en el registro ECX
+
+; Espera el ultimo caracter en el registro CL (8 LSB de ECX)
 ; Representa estar en el inicio de una nueva linea
 estado_nueva_linea:
 	call verificar_letra ; Verifico si el caracter es una letra (Rutina externa)
 	cmp EAX, 1			 ; Si es una letra, EAX = 1
 	je linea_letra		 ; Si era una letra, tengo combinacion nueva_linea/letra
 	
-	cmp ECX, 0xA		 ; Comparo el caracter con un caracter de nueva linea
+	cmp CL, 0xA		 ; Comparo el caracter con un caracter de nueva linea
 	je linea_linea		 ; Si era un igual, tengo combinacion nueva_linea/nueva_linea
 
 	ret 				 ; Si era un separador o un caracter basura, no hago nada
@@ -43,7 +39,10 @@ estado_nueva_linea:
 		call aumentar_lineas 				; Aumento la cantidad de lineas (Rutina externa)
 		ret 								; Finalizo la subrutina de estado
 
-; Espera el ultimo caracter en el registro ECX
+
+
+
+; Espera el ultimo caracter en el registro CL (8 LSB de ECX)
 ; Representa haber leido una letra previamente
 estado_letra: 
 	call verificar_separador ; Verifico si el caracter es un separador (Rutina externa)
@@ -58,17 +57,19 @@ estado_letra:
 	ret 											; Retorno de la subrutina
 
 	letra_separador:
-		cmp ECX, 0xA	; Comparo el caracter con uno de nueva linea
+		cmp CL, 0xA	; Comparo el caracter con uno de nueva linea
 		je letra_linea	; Si es igual tengo combinacion letra/linea
 
 		call aumentar_palabras                  	; No es nueva linea, aumento la cantidad de palabras (Rutina externa)
 		mov [estado_actual], DWORD estado_separador	; Cambio el estado actual por el de separador
+		ret 										; Retorno de la subrutina
 
 		letra_linea:
 			call aumentar_palabras 	; Aumento la cantidad de palabras (Rutina externa)
 			call aumentar_lineas	; Aumento la cantidad de lineas (Rutina externa)
 			call aumentar_parrafos 	; Aumento la cantidad de parrafos (Rutina externa)
-			mov [estado_actual], DWORD estado_nueva_linea ; Cambio el estado actual por el de nueva linea 
+			mov [estado_actual], DWORD estado_nueva_linea ; Cambio el estado actual por el de nueva linea
+			ret 										  ; Retorno de la subrutina 
 	
 	letra_letra:
 		call aumentar_letras	; Aumento la cantidad de letras (Rutina externa)
@@ -76,14 +77,15 @@ estado_letra:
 
 
 
-; Espera el ultimo caracter en el registro ECX
+
+; Espera el ultimo caracter en el registro CL (8 LSB de ECX)
 ; Representa haber leido un separador previamente
 estado_separador:
 	call verificar_letra ; Verifico si el caracter es una letra (Rutina externa)
 	cmp EAX, 1			 ; Si es una letra, EAX = 1
 	je separador_letra	 ; Si era una letra, tengo combinacion separador/letra
 	
-	cmp ECX, 0xA		 ; Comparo el caracter con un caracter de nueva linea
+	cmp CL, 0xA		 ; Comparo el caracter con un caracter de nueva linea
 	je separador_linea	 ; Si era un igual, tengo combinacion separador/nueva_linea
 
 	ret 				 ; Si era un separador o un caracter basura, no hago nada
@@ -99,7 +101,10 @@ estado_separador:
 		mov [estado_actual], DWORD estado_nueva_linea	; Vuelvo al estado "inicial" de nueva linea
 		ret 					; Retorno de la subrutina
 
-; Espera el ultimo caracter en el registro ECX
+
+
+
+; Espera el ultimo caracter en el registro CL (8 LSB de ECX)
 ; Representa haber leido una letra previamente, pero con 
 ; la condicion de ya haber armado una palabra valida en la linea actual
 estado_letra_parrafo:
