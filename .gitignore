@@ -1,11 +1,10 @@
-
-### Archivos generados
-*.o
-
 ### Archivos sin extension
 *
 !/*/
 !*.*
+
+### Archivos generados
+*.o
 
 ### Archivo temporal
 temporal.txt
