@@ -36,18 +36,82 @@ estado_nueva_linea:
 
 	ret 				 ; Si era un separador o un caracter basura, no hago nada
 	linea_letra:
-		call aumentar_letras 				; Aumento la cantidad de letras (Rutina externa)
-		mov [estado_actual], estado_letra	; Modifico el estado actual por el de letra
-		ret 								; Finalizo la subrutina de estado
+		call aumentar_letras 					; Aumento la cantidad de letras (Rutina externa)
+		mov [estado_actual], DWORD estado_letra	; Modifico el estado actual por el de letra
+		ret 									; Finalizo la subrutina de estado
 	linea_linea:
 		call aumentar_lineas 				; Aumento la cantidad de lineas (Rutina externa)
 		ret 								; Finalizo la subrutina de estado
 
 ; Espera el ultimo caracter en el registro ECX
 ; Representa haber leido una letra previamente
-estado_letra 
+estado_letra: 
 	call verificar_separador ; Verifico si el caracter es un separador (Rutina externa)
 	cmp EAX, 1				 ; Si es un separador, EAX = 1
 	je letra_separador		 ; Si es igual, tengo combinacion letra/separador
-	call verificar_letra	 ; Verifico (Rutina externa)
+
+	call verificar_letra	 ; Verifico si el caracter es una letra (Rutina externa)
+	cmp EAX, 1				 ; Si es una letra, EAX = 1
+	je letra_letra			 ; Si es igual, tengo combinacion letra/letra
+
+	mov [estado_actual], DWORD estado_nueva_linea 	; Es un caracter basura, volvemos al estado "inicial"
+	ret 											; Retorno de la subrutina
+
+	letra_separador:
+		cmp ECX, 0xA	; Comparo el caracter con uno de nueva linea
+		je letra_linea	; Si es igual tengo combinacion letra/linea
+
+		call aumentar_palabras                  	; No es nueva linea, aumento la cantidad de palabras (Rutina externa)
+		mov [estado_actual], DWORD estado_separador	; Cambio el estado actual por el de separador
+
+		letra_linea:
+			call aumentar_palabras 	; Aumento la cantidad de palabras (Rutina externa)
+			call aumentar_lineas	; Aumento la cantidad de lineas (Rutina externa)
+			call aumentar_parrafos 	; Aumento la cantidad de parrafos (Rutina externa)
+			mov [estado_actual], DWORD estado_nueva_linea ; Cambio el estado actual por el de nueva linea 
+	
+	letra_letra:
+		call aumentar_letras	; Aumento la cantidad de letras (Rutina externa)
+		ret 					; Retorno de la subrutina
+
+
+
+; Espera el ultimo caracter en el registro ECX
+; Representa haber leido un separador previamente
+estado_separador:
+	call verificar_letra ; Verifico si el caracter es una letra (Rutina externa)
+	cmp EAX, 1			 ; Si es una letra, EAX = 1
+	je separador_letra	 ; Si era una letra, tengo combinacion separador/letra
+	
+	cmp ECX, 0xA		 ; Comparo el caracter con un caracter de nueva linea
+	je separador_linea	 ; Si era un igual, tengo combinacion separador/nueva_linea
+
+	ret 				 ; Si era un separador o un caracter basura, no hago nada
+
+	separador_letra:
+		call aumentar_letras 	; Aumento la cantidad de letras (Rutina externa)
+		mov [estado_actual], DWORD estado_letra_parrafo ; | Cambio al estado de letra, pero como ya lei una
+												  		; | palabra valida, es el estado letra_parrafo
+		ret 									  		; Retorno de la subrutina
+	separador_linea:
+		call aumentar_parrafos	; Aumento la cantidad de parrafos (Rutina externa)
+		call aumentar_lineas	; Aumento la cantidad de lineas (Rutina externa)
+		mov [estado_actual], DWORD estado_nueva_linea	; Vuelvo al estado "inicial" de nueva linea
+		ret 					; Retorno de la subrutina
+
+; Espera el ultimo caracter en el registro ECX
+; Representa haber leido una letra previamente, pero con 
+; la condicion de ya haber armado una palabra valida en la linea actual
+estado_letra_parrafo:
+	call verificar_separador ; Verifico si el caracter es un separador (Rutina externa)
+	cmp EAX, 1				 ; Si es un separador, EAX = 1
+	je letra_separador		 ; Si es igual, tengo combinacion letra/separador
+
+	call verificar_letra	 ; Verifico si el caracter es una letra (Rutina externa)
+	cmp EAX, 1				 ; Si es una letra, EAX = 1
+	je letra_letra			 ; Si es igual, tengo combinacion letra/letra
+
+	mov [estado_actual], DWORD estado_separador ; | Es un caracter basura, volvemos al estado de separador
+										  		; | (esta es la unica variacion respecto al estado_letra comun)
+	ret 								  		; Retorno de la subrutina
 
