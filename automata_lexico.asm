@@ -8,7 +8,69 @@
 section .data
 	estado_actual dd estado_nueva_linea ; Inicializo el espacio del estado actual
 										; con el estado de una nueva linea
-										
+
+	texto db "c", 0xA, 0xA
+	len equ $ - texto
+
+section .text
+	global _start ; Dev only
+	global analizar_caracter ; Rutina inicial del automata
+
+_start: ; Dev only
+	mov EDX, 0x0
+	lp:
+		mov ECX, [texto+EDX]
+		call analizar_caracter
+		inc EDX
+		cmp EDX, len
+		jne lp
+
+	mov ESI, [cant_letras]
+	add ESI, 0x30
+	push ESI
+	mov ECX, ESP
+	mov EAX, 4
+	mov EBX, 1
+	mov EDX, 1
+	int 0x80
+
+	push 0x20
+	mov ECX, ESP
+	mov EAX, 4
+	int 0x80
+
+	mov ESI, [cant_palabras]
+	add ESI, 0x30
+	push ESI
+	mov ECX, ESP
+	mov EAX, 4
+	int 0x80
+
+	push 0x20
+	mov ECX, ESP
+	mov EAX, 4
+	int 0x80
+
+	mov ESI, [cant_lineas]
+	add ESI, 0x30
+	push ESI
+	mov ECX, ESP
+	mov EAX, 4
+	int 0x80
+
+	push 0x20
+	mov ECX, ESP
+	mov EAX, 4
+	int 0x80
+
+	mov ESI, [cant_parrafos]
+	add ESI, 0x30
+	push ESI
+	mov ECX, ESP
+	mov EAX, 4
+	int 0x80
+	mov EAX, 1
+	int 0x80
 
 ; Espera el ultimo caracter leido en el registro CL (8 LSB de ECX)
 analizar_caracter:
@@ -16,8 +78,6 @@ analizar_caracter:
 	call [estado_actual] ; Salto a la primera instruccion de la rutina del estado actual 
 	pop EAX 			 ; Recupero el contenido de EAX
 	ret 				 ; Retorno de la subrutina
-
-
 
 
 ; Espera el ultimo caracter en el registro CL (8 LSB de ECX)
@@ -38,9 +98,6 @@ estado_nueva_linea:
 	linea_linea:
 		call aumentar_lineas 				; Aumento la cantidad de lineas (Rutina externa)
 		ret 								; Finalizo la subrutina de estado
-
-
-
 
 ; Espera el ultimo caracter en el registro CL (8 LSB de ECX)
 ; Representa haber leido una letra previamente
@@ -77,7 +134,6 @@ estado_letra:
 
 
 
-
 ; Espera el ultimo caracter en el registro CL (8 LSB de ECX)
 ; Representa haber leido un separador previamente
 estado_separador:
@@ -100,9 +156,6 @@ estado_separador:
 		call aumentar_lineas	; Aumento la cantidad de lineas (Rutina externa)
 		mov [estado_actual], DWORD estado_nueva_linea	; Vuelvo al estado "inicial" de nueva linea
 		ret 					; Retorno de la subrutina
-
-
-
 
 ; Espera el ultimo caracter en el registro CL (8 LSB de ECX)
 ; Representa haber leido una letra previamente, pero con 
