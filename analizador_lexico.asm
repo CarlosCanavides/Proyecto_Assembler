@@ -1,3 +1,6 @@
+%ifndef ANALIZADOR_LEXICO
+%define ANALIZADOR_LEXICO
+
 
 ; Espera el caracter en el registro CL (8 LSB de ECX)
 ; Si es letra almacena un 1 (true) en EAX, 0 en caso contrario
@@ -51,3 +54,5 @@ verificar_separador:
 	es_separador:
 		mov EAX, true ; Si era un separador
 		ret 		  ; Retorno de la subrutina
+
+%endif;ANALIZADOR_LEXICO

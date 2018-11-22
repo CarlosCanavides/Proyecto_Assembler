@@ -1,3 +1,6 @@
+%ifndef AUTOMATA_LEXICO
+%define AUTOMATA_LEXICO
+
 %define true 1
 %define false 0
 
@@ -173,3 +176,5 @@ estado_letra_parrafo:
 										  		; | (esta es la unica variacion respecto al estado_letra comun)
 	ret 								  		; Retorno de la subrutina
 
+
+%endif;AUTOMATA_LEXICO
