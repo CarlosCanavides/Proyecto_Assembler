@@ -2,6 +2,10 @@
 %define ANALIZADOR_LEXICO
 
 
+section .text
+	global verificar_letra
+	global verificar_separador
+
 ; Espera el caracter en el registro CL (8 LSB de ECX)
 ; Si es letra almacena un 1 (true) en EAX, 0 en caso contrario
 ; Ignora si habia algun contenido previo en EAX

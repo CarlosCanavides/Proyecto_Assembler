@@ -11,7 +11,10 @@
 section .data
 	estado_actual dd estado_nueva_linea ; Inicializo el espacio del estado actual
 										; con el estado de una nueva linea
-										
+								
+section .text
+	global analizar_caracter
+
 
 ; Espera el ultimo caracter leido en el registro CL (8 LSB de ECX)
 analizar_caracter:

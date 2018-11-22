@@ -13,6 +13,16 @@ section .bss
 								  ; pidan ser recuperadas (Solo una representacion estara
 								  ; almacenada a la vez)
 
+section .text
+	global aumentar_letras
+	global aumentar_palabras
+	global aumentar_lineas
+	global aumentar_parrafos
+	global reestablecer_metricas
+	global recuperar_cant_letras
+	global recuperar_cant_palabras
+	global recuperar_cant_lineas
+	global recuperar_cant_parrafos
 
 ; Espera ser llamado con call
 ; Aumenta la cantidad de letras
