@@ -10,7 +10,7 @@
 %include "contador_metricas.asm"
 
 section .data
-	mensaje    db "hola"
+	mensaje    db "hola "
 	fd_entrada dd 0                ; reserva memoria para mantener el descriptor del archivo de entrada.
 	fd_salida  dd 1                ; reserva memoria para mantener el descriptor del archivo de salida de los resultados. Por defecto es por consola.
 	file_temp  dd "temporal.txt"   ; nombre del archivo temporal, sera utilizado cuando la cantidad de parametros sea 0.
@@ -123,31 +123,54 @@ calcularMetricas :
 	leer_linea :
 		mov EAX,3                  ; sys_read
 		mov EBX,[fd_entrada]	   ; EBX = archivo de entrada.
-		mov ECX,caracter 		   ; buffer donde se almacenara lo leido del archivo.
+		mov ECX,buffer 			   ; buffer donde se almacenara lo leido del archivo.
 		mov EDX,1000 			   ; EDX = longitud de lo que se leera por consola. 
 								   ; Se asume un maximo de 1000 caracteres por linea. 
 		int 0x80                   ; genera interrupcion.
 
-	cmp EAX,0                  ; compara la cantidad de bytes que se pudieron leer del archivo con 0.
-	je finalizar               ; si la cantidad de bytes leidas es 0, se alcanzo el EOF del archivo.
+	cmp EAX,0                      ; compara la cantidad de bytes que se pudieron leer del archivo con 0.
+	je finalizar                   ; si la cantidad de bytes leidas es 0, se alcanzo el EOF del archivo.
 
-	ret
+	mov EBX,0 					   ; EBX funcionara como un registro de desplazamiento.
+								   ; Desplazandose en la memoria reservada para el buffer.
+
+	; Una vez que se ejecuta sys_read, el registro EAX contiene la cantidad de bytes que se pudieron leer del archivo.
+	; Esta cantidad de bytes se corresponde con la cantidad de caracteres leidos. Por lo tanto, se procede a analizar
+	; dichos caracteres uno por uno. Despalzandose en la memoria reservada para el buffer.
+	leer_caracter :
+		mov cl, byte[buffer+EBX]   ; ECX = caracter contenido en el buffer.
+		dec EAX                    ; decremento la cantidad de caracteres que faltan procesar.
+		call analizar_caracter     ; llamada a la rutina que analiza el caracter leido.
+		call println			   ; Dev only
+		cmp EAX,0                  ; comparo la cantidad de caracteres que faltan procesar con 0.
+		je leer_linea              ; si ya no hay nada mas para procesar, vuelvo a leer otra linea.
+		inc EBX                    ; si faltan procesar caracteres, incremento el registro de desplazamiento.
+		jmp leer_caracter          ; proceso el siguiente caracter.
 
 	finalizar :
-		; muestra por pantalla el mensaje "hola" cuando se llego a EOF
-		; Dev only
-		mov EDX,4
-		mov EAX, 4
-		mov EBX, 1
-		mov ECX, mensaje
-		int 0x80
-
-		ret
+		ret                        ; retorno
 
 _exit :
     mov EAX,1   ; sys_exit
 	pop EBX     ; condicion de terminacion.
 	int 0x80    ; genera interrupcion.
 
+println :
+	; Dev only
+	push EAX
+	push EBX
+	push ECX
+
+	mov EAX, 4
+	mov EBX, 1
+	mov ECX, mensaje
+	mov EDX, 5
+	int 0x80
+
+	pop ECX
+	pop EBX
+	pop EAX
+
+	ret
 
 %endif;CONTROL_PARAMETROS
