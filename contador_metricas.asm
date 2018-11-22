@@ -13,6 +13,19 @@ section .bss
 								  ; pidan ser recuperadas (Solo una representacion estara
 								  ; almacenada a la vez)
 
+section .text
+	global _start
+
+_start:
+	times 51532 call aumentar_parrafos
+
+	mov EAX, 4
+	mov EBX, 1
+	call recuperar_cant_parrafos
+	int 0x80
+	mov EAX, 1
+	int 0x80
+
 
 ; Espera ser llamado con call
 ; Aumenta la cantidad de letras
