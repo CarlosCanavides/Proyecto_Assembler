@@ -3,13 +3,17 @@
 %define terminacion_anormal_archSalida  2     ; terminacion anormal por error en el archivo de salida
 %define terminacion_anormal 3				  ; terminacion anormal por otras causas
 
+;%include "automata_lexico.asm"
+
 section .data
+	mensaje    db "hola"
 	fd_entrada dd 0                ; reserva memoria para mantener el descriptor del archivo de entrada.
 	fd_salida  dd 1                ; reserva memoria para mantener el descriptor del archivo de salida de los resultados. Por defecto es por consola.
-	file_temp  db "temporal.txt"   ; nombre del archivo temporal, sera utilizado cuando la cantidad de parametros sea 0.
+	file_temp  dd "temporal.txt"   ; nombre del archivo temporal, sera utilizado cuando la cantidad de parametros sea 0.
 
 section .bss
-	input resb 1
+	buffer   resb 100              ; reserva espacio para un buffer de 100 bytes.
+	caracter resb 1                ; reserva espacio para un caracter leido de un archivo.
 
 section .text
 global _start
@@ -40,44 +44,57 @@ ceroParametros :
 
    	mov [fd_entrada],EAX        ; fd_entrada = EAX;
 
-   	leerCaracter :
+   	leerBuffer :
 		mov EAX, 3					; sys_read
 		mov EBX, 0                  ; indica ingreso por consola STDIN.
-		mov ECX, input              ; lo ingresado por usuario se almacenara en input.
-		mov EDX, 1                  ; longitud de lo que se leera por consola.
+		mov ECX, buffer             ; lo ingresado por usuario se almacenara en buffer.
+		mov EDX, 1000               ; EDX = longitud de lo que se leera por consola. 
+									; Se asume un maximo de 1000 caracteres por linea.
 		int 0x80                    ; genera interrupcion.
 
 		cmp EAX,0                   ; Detecta la secuencia de escape para el fin del ingreso por teclado (Ctrl+D).
 		je  continuar				; si se termino el ingreso por teclado se procede a calcular las metricas del archivo temporal.
 
+		mov EDX, EAX				; EDX = longitud en bytes de lo que se leyo por consola.
 		mov EAX, 4                  ; sys_write
 		mov EBX, [fd_entrada]	    ; indica que se escriba por fd_entrada
-		mov ECX, input              ; texto a escribir.
-		mov EDX, 1                  ; longitud del texto a escribir.
+		mov ECX, buffer             ; texto a escribir.
 		int 0x80                    ; genera interrupcion.
 
-		jmp leerCaracter            ; se vuelve a leer otro caracter.
+		jmp leerBuffer              ; se vuelve a leer por consola.
 
 	continuar :
-		push terminacion_normal         ; parametriza la condicion de terminacion.
-		jmp _exit                       ; se ejecuta rutina de finalizacion.
+		push terminacion_normal  ; parametriza la condicion de terminacion.
+
+		mov EAX,6                ; sys_close
+    	mov EBX,[fd_entrada]     ; indica puntero a archivo de entrada.
+    	int 0x80                 ; genera interrrupcion.
+
+		mov EBX,file_temp		 ; EBX = nombre del archivo temporal.
+		call abrirArchivo        ; llamada a la rutina que abre el archivo mencionado en EBX.
+								 ; finalizada la rutina, el file_descriptor del archivo se localiza en EAX.
+
+		mov [fd_entrada],EAX     ; fd_entrada = EAX.
+
+		call calcularMetricas    ; llamada a la rutina que calcula las metricas sobre el archivo temporal.
+		call cerrarArchivos      ; llamada a la rutina que se encarga de cerrar los archivos usados.
+		jmp _exit                ; se ejecuta rutina de finalizacion.
 
 unParametro  :
-	mov EAX,5                    ; sys_open
-	mov ECX,0                    ; modo solo lectura, para el archivo.  
-	mov EDX,0777                 ; permiso RWE para todos los usuarios.
-	int 0x80                     ; genera interrupcion.
-
+	call abrirArchivo            ; llamada a la rutina que trata de abrir el archivo de entrada.
 	mov [fd_entrada],EAX         ; fd_entrada = EAX
-
-	jmp _exit
+	call calcularMetricas        ; llamada a la rutina que calcula las metricas sobre el archivo de entrada.
+	jmp _exit                    ; se ejecuta la rutina de finalizacion.
 
 dosParametros :
-			   jmp _exit
+	call abrirArchivo            ; llamada a la rutina que trata de abrir el archivo de entrada.
+	mov [fd_entrada],EAX         ; fd_entrada = EAX
+	call calcularMetricas        ; llamada a la rutina que calcula las metricas sobre el archivo de entrada.
+	jmp _exit                    ; se ejecuta la rutina de finalizacion.
 
 abrirArchivo  :
     mov EAX,5                  ; sys_open
-    mov ECX,2                  ; modo lectura y escritura, para el archivo.  
+    mov ECX,0                  ; modo lectura, para el archivo.  
 	mov EDX,0777               ; permiso RWE para todos los usuarios.
 	int 0x80                   ; genera interrupcion.
 	ret                        ; retorno
@@ -87,18 +104,41 @@ cerrarArchivos :
     mov EBX,[fd_entrada]       ; indica puntero a archivo de entrada.
     int 0x80                   ; genera interrrupcion.
 
+    mov EAX, [fd_salida]       ; EAX = fd_salida.
+    cmp EAX,1                  ; chequea si la salida fue por STDOUT (salida estandar).
+    je fin                     ; si fd_salida = STDOUT finaliza la rutina.
+
     mov EAX,6                  ; sys_close
     mov EBX,[fd_salida]        ; indica puntero a archivo de salida.
     int 0x80                   ; genera interrrupcion.
 
-    ret                        ; retorno
+    fin :
+    	ret 				   ; retorno
 
 calcularMetricas :
-	mov EAX, 3			     ; sys_read
-    mov EBX, [fd_entrada]    ; indica ingreso por consola fd_entrada.
-    mov ECX, input           ; input  = lugar donde se almacenara lo leido del archivo de entrada.
-    mov EDX, 1               ; 1 byte = longitud de lo que se leera del archivo de entrada.
-    int 0x80                 ; genera interrupcion.
+	leer_linea :
+		mov EAX,3                  ; sys_read
+		mov EBX,[fd_entrada]	   ; EBX = archivo de entrada.
+		mov ECX,caracter 		   ; buffer donde se almacenara lo leido del archivo.
+		mov EDX,1000 			   ; EDX = longitud de lo que se leera por consola. 
+								   ; Se asume un maximo de 1000 caracteres por linea. 
+		int 0x80                   ; genera interrupcion.
+
+	cmp EAX,0                  ; compara la cantidad de bytes que se pudieron leer del archivo con 0.
+	je finalizar               ; si la cantidad de bytes leidas es 0, se alcanzo el EOF del archivo.
+
+	ret
+
+	finalizar :
+		; muestra por pantalla el mensaje "hola" cuando se llego a EOF
+		; Dev only
+		mov EDX,4
+		mov EAX, 4
+		mov EBX, 1
+		mov ECX, mensaje
+		int 0x80
+
+		ret
 
 _exit :
     mov EAX,1   ; sys_exit
