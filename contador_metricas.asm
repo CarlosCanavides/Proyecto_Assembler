@@ -70,7 +70,8 @@ reestablecer_metricas:
 ; No modifica el contenido previo de los registros no mencionados
 recuperar_cant_letras:
 	push EAX				; Preservo el contenido de EAX
-	mov EAX, cant_letras 	; Almaceno en EAX la cantidad de letras en binario
+	mov EAX, [cant_letras] 	; Almaceno en EAX la cantidad de letras en binario
+	call convertir_decimal	; Convierto el valor de EAX a caracteres decimales
 	mov ECX, representacion_entera	; Dejo en ECX la direccion a donde se encuentran los digitos
 	pop EAX					; Restauro el contenido de EAX
 	ret 					; Retorno de la subrutina
@@ -81,11 +82,12 @@ recuperar_cant_letras:
 ; y en EDX la cantidad de digitos 
 ; No modifica el contenido previo de los registros no mencionados
 recuperar_cant_palabras:
-	push EAX				; Preservo el contenido de EAX
-	mov EAX, cant_palabras 	; Almaceno en EAX la cantidad de palabras en binario
+	push EAX					; Preservo el contenido de EAX
+	mov EAX, [cant_palabras] 	; Almaceno en EAX la cantidad de palabras en binario
+	call convertir_decimal		; Convierto el valor de EAX a caracteres decimales
 	mov ECX, representacion_entera	; Dejo en ECX la direccion a donde se encuentran los digitos
-	pop EAX					; Restauro el contenido de EAX
-	ret 					; Retorno de la subrutina
+	pop EAX						; Restauro el contenido de EAX
+	ret 						; Retorno de la subrutina
 
 
 ; Espera ser llamado con call
@@ -94,7 +96,8 @@ recuperar_cant_palabras:
 ; No modifica el contenido previo de los registros no mencionados
 recuperar_cant_lineas:
 	push EAX				; Preservo el contenido de EAX
-	mov EAX, cant_lineas 	; Almaceno en EAX la cantidad de lineas en binario
+	mov EAX, [cant_lineas] 	; Almaceno en EAX la cantidad de lineas en binario
+	call convertir_decimal	; Convierto el valor de EAX a caracteres decimales
 	mov ECX, representacion_entera	; Dejo en ECX la direccion a donde se encuentran los digitos
 	pop EAX					; Restauro el contenido de EAX
 	ret 					; Retorno de la subrutina
@@ -105,11 +108,12 @@ recuperar_cant_lineas:
 ; y en EDX la cantidad de digitos 
 ; No modifica el contenido previo de los registros no mencionados
 recuperar_cant_parrafos:
-	push EAX				; Preservo el contenido de EAX
-	mov EAX, cant_parrafos 	; Almaceno en EAX la cantidad de parrafos en binario
+	push EAX					; Preservo el contenido de EAX
+	mov EAX, [cant_parrafos] 	; Almaceno en EAX la cantidad de parrafos en binario
+	call convertir_decimal		; Convierto el valor de EAX a caracteres decimales
 	mov ECX, representacion_entera	; Dejo en ECX la direccion a donde se encuentran los digitos
-	pop EAX					; Restauro el contenido de EAX
-	ret 					; Retorno de la subrutina
+	pop EAX						; Restauro el contenido de EAX
+	ret 						; Retorno de la subrutina
 
 
 
