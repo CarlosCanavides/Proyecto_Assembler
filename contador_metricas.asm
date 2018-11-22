@@ -15,6 +15,15 @@ section .bss
 
 section .text
 	global _start
+	global aumentar_letras
+	global aumentar_palabras
+	global aumentar_lineas
+	global aumentar_parrafos
+	global reestablecer_metricas
+	global recuperar_cant_letras
+	global recuperar_cant_palabras
+	global recuperar_cant_lineas
+	global recuperar_cant_parrafos
 
 _start:
 	times 51532 call aumentar_parrafos
@@ -25,7 +34,6 @@ _start:
 	int 0x80
 	mov EAX, 1
 	int 0x80
-
 
 ; Espera ser llamado con call
 ; Aumenta la cantidad de letras
