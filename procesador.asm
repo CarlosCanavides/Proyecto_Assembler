@@ -1,5 +1,5 @@
-%ifndef CALCULADOR_METRICAS
-%define CALCULADOR_METRICAS
+%ifndef PROCESADOR
+%define PROCESADOR
 
 %include "contador_metricas.asm"
 
@@ -131,4 +131,4 @@ imprimir_salto_de_linea:
 	ret
 
 
-%endif; CALCULADOR_METRICAS
+%endif; PROCESADOR

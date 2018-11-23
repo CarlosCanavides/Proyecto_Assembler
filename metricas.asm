@@ -7,13 +7,25 @@
 %define terminacion_anormal 3				  ; terminacion anormal por otras causas
 
 %include "automata_lexico.asm"
-%include "calculador_metricas.asm"
+%include "procesador.asm"
 %include "about.asm"
 
 section .data
-	fd_entrada dd 0                ; reserva memoria para mantener el descriptor del archivo de entrada.
-	fd_salida  dd 1                ; reserva memoria para mantener el descriptor del archivo de salida de los resultados. Por defecto es por consola.
-	file_temp  dd "temporal.txt"   ; nombre del archivo temporal, sera utilizado cuando la cantidad de parametros sea 0.
+	fd_entrada dd 0                		; reserva memoria para mantener el descriptor del archivo de entrada.
+	fd_salida  dd 1                		; reserva memoria para mantener el descriptor del archivo de salida de los resultados. Por defecto es por consola.
+	file_temp  dw "archTemporal.txt"    ; nombre del archivo temporal, sera utilizado cuando la cantidad de parametros sea 0.
+	
+	msj_error0 db "Terminacion normal",0xA							; mensaje para mostrar cuando la ejecucion fue exitosa.
+	msj_error0_len EQU $-msj_error0 								; longitus del mensaje.
+
+	msj_error1 db "Terminacion anormal : archivo de entrada",0xA	; mensaje para mostrar cuando la ejecucion fue exitosa.
+	msj_error1_len EQU $-msj_error1									; longitus del mensaje.
+
+	msj_error2 db "Terminacion anormal : archivo de salida",0xA		; mensaje para mostrar cuando la ejecucion fue exitosa.
+	msj_error2_len EQU $-msj_error2 								; longitus del mensaje.
+
+	msj_error3 db "Terminacion anormal",0xA							; mensaje para mostrar cuando la ejecucion fue exitosa.
+	msj_error3_len EQU $-msj_error3 								; longitus del mensaje.
 
 section .bss
 	buffer   resb 1000             ; reserva espacio para un buffer de 100 bytes.
@@ -225,10 +237,51 @@ verificar_ayuda :
 		jmp _exit 				  ; se ejecuta la rutina de finalizacion.
 
 
+
+mostrar_error :
+	cmp EBX,0
+	je exito
+	cmp EBX,1
+	je error1
+	cmp EBX,2
+	je error2
+	cmp EBX,3
+	je error3
+
+	exito :
+		mov ECX,msj_error0
+		mov EDX,msj_error0_len
+		jmp imprimir
+
+	error1 :
+		mov ECX,msj_error1
+		mov EDX,msj_error1_len
+		jmp imprimir
+
+	error2 :
+		mov ECX,msj_error2
+		mov EDX,msj_error2_len
+		jmp imprimir
+
+	error3 :
+		mov ECX,msj_error3
+		mov EDX,msj_error3_len
+		jmp imprimir
+
+	imprimir :
+		push EBX
+		mov EAX,4
+		mov EBX,1
+		int 0x80
+		pop EBX
+		ret
+
+
 ; Rutina de finalizacion
 _exit :
+	pop EBX
+	call mostrar_error
     mov EAX,1   ; sys_exit
-	pop EBX     ; condicion de terminacion.
 	int 0x80    ; genera interrupcion.
 
 
