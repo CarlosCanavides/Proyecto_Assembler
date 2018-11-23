@@ -82,10 +82,17 @@ cero_parametros :
 								 ; finalizada la rutina, el file_descriptor del archivo se localiza en EAX.
 		mov [fd_entrada],EAX     ; fd_entrada = EAX.
 		cmp EAX,0				 ; se verifica que el proceso "sys_open" haya sido exitoso.
-		jge procesar			 ; si se pudo abrir el archivo de temporal, continua la ejecucion.
+		jge entrada_salida_cons	 ; si se pudo abrir el archivo de temporal, continua la ejecucion.
 
 		push terminacion_anormal ; se parametriza la condicion de terminacion.
 		jmp _exit                ; se ejecuta la rutina de finalizacion.
+
+		entrada_salida_cons :
+			call procesar 			 		; llamada a la rutina que se encarga de procesar el archivo temporal.
+			call cerrar_archivos 			; llamada a la rutina que se encarga de cerrar los archivos usados.
+			call borrar_arch_temporal		; se elimina el archivo temporal.
+			push terminacion_normal    		; parametriza la condicion de terminacion.
+			jmp _exit   			   		; se ejecuta la rutina de finalizacion.
 
 
 un_parametro  :
@@ -93,10 +100,16 @@ un_parametro  :
 	call abrir_archivo                      ; llamada a la rutina que trata de abrir el archivo de entrada.
 	mov [fd_entrada],EAX                    ; fd_entrada = EAX
 	cmp EAX,0								; se verifica que el proceso "sys_open" haya sido exitoso.
-	jge procesar							; si se pudo abrir el archivo de entrada continua la ejecucion.
+	jge entrada_arch_salida_cons			; si se pudo abrir el archivo de entrada continua la ejecucion.
 
 	push terminacion_anormal_archEntrada    ; se parametriza la condicion de terminacion.
 	jmp _exit                               ; se ejecuta la rutina de finalizacion.
+
+	entrada_arch_salida_cons :
+		call procesar 			 			; llamada a la rutina que se encarga de procesar el archivo.
+		call cerrar_archivos       			; llamada a la rutina que se encarga de cerrar los archivos usados.
+		push terminacion_normal    			; parametriza la condicion de terminacion.
+		jmp _exit   			   			; se ejecuta la rutina de finalizacion.
 
 
 dos_parametros :
@@ -113,10 +126,16 @@ dos_parametros :
 		call abrir_archivo_salida    		; llamada a la rutina que trata de abrir el archivo de salida.
 		mov [fd_salida],EAX					; fd_salida = EAX
 		cmp EAX,0							; se verifica que el proceso "sys_open" haya sido exitoso.
-		jge procesar						; si se pudo abrir el archivo de salida, continua la ejecucion.
+		jge entrada_salida_arch				; si se pudo abrir el archivo de salida, continua la ejecucion.
 
 		push terminacion_anormal_archSalida ; se parametriza la condicion de terminacion.
 		jmp _exit							; se ejecuta la rutina de finalizacion.
+
+	entrada_salida_arch :
+		call procesar 			 ; llamada a la rutina que se encarga de procesar los archivos.
+		call cerrar_archivos     ; llamada a la rutina que se encarga de cerrar los archivos usados.
+		push terminacion_normal  ; parametriza la condicion de terminacion.
+		jmp _exit   			 ; se ejecuta la rutina de finalizacion.
 
 
 ; Una vez que el control de los parametros fue realizado, esta rutina se encarga del procesamiento posterior.
@@ -126,9 +145,7 @@ procesar :
 	call calcular_metricas     ; llamada a la rutina que calcula las metricas sobre el archivo de entrada.
 	mov EBX,[fd_salida]		   ; EBX = fd_salida, ya que la rutina mostrar_resultados espera dicho parametro.
 	call mostrar_resultados    ; llamada a la rutina que se encarga de mostrar los resultados.
-	call cerrar_archivos       ; llamada a la rutina que se encarga de cerrar los archivos usados.
-	push terminacion_normal    ; parametriza la condicion de terminacion.
-	jmp _exit   			   ; se ejecuta la rutina de finalizacion.
+	ret
 
 
 ; Rutina que se encarga de abrir un archivo para lectura, cuyo file_name ya se encuentra en el registro EBX.
@@ -169,6 +186,14 @@ cerrar_archivos :
 
     fin :
     	ret 				   ; retorno
+
+
+; Rutina que se enxarga de borra el archivo temporal.
+borrar_arch_temporal :
+	mov EAX,0x0A
+	mov EBX,file_temp
+	int 0x80
+	ret
 
 
 ; Rutina que verifica si el parametro ingresado se corresponde con la secuencia de ayuda "-h"

@@ -74,14 +74,9 @@ mostrar_resultados :
 	mov EBX,ESI 					; EBX = fd_salida
 	int 0x80					 	; genera interrupcion.
 
-	push 0xA						; push salto de linea.
-
-	mov EAX, 4					    ; sys_write
 	mov EBX,ESI 					; EBX = fd_salida
-	mov ECX,ESP 					; ECX = salto de linea.
-	mov EDX,1 						; EDX = 1 byte.
-	int 0x80					 	; genera interrupcion.
-
+	call imprimir_salto_de_linea
+	
 	mov EAX, 4						; sys_write
 	mov EBX, ESI 					; EBX = fd_salida
 	mov ECX, msj_palabras 			; ECX = mensaje de cantidad de palabras
@@ -93,11 +88,8 @@ mostrar_resultados :
 	mov EBX,ESI 					; EBX = fd_salida.
 	int 0x80						; genera interrupcion.
 
-	mov EAX, 4					    ; sys_write
 	mov EBX,ESI 					; EBX = fd_salida
-	mov ECX,ESP 					; ECX = salto de linea.
-	mov EDX,1 						; EDX = 1 byte.
-	int 0x80					 	; genera interrupcion.
+	call imprimir_salto_de_linea
 
 	mov EAX, 4						; sys_write
 	mov EBX, ESI 					; EBX = fd_salida
@@ -110,11 +102,8 @@ mostrar_resultados :
 	mov EBX,ESI 					; EBX = fd_salida
 	int 0x80						; genera interrupcion.
 
-	mov EAX, 4					    ; sys_write
 	mov EBX,ESI 					; EBX = fd_salida
-	mov ECX,ESP 					; ECX = salto de linea.
-	mov EDX,1 						; EDX = 1 byte.
-	int 0x80					 	; genera interrupcion.
+	call imprimir_salto_de_linea
 
 	mov EAX, 4						; sys_write
 	mov EBX, ESI 					; EBX = fd_salida
@@ -127,14 +116,19 @@ mostrar_resultados :
 	mov EBX,ESI 					; EBX = fd_salida
 	int 0x80						; genera interrupcion.
 
-	mov EAX, 4					    ; sys_write
 	mov EBX,ESI 					; EBX = fd_salida
+	call imprimir_salto_de_linea
+
+	ret
+
+imprimir_salto_de_linea:
+	push 0xA 						; push salto de linea.
+	mov EAX, 4					    ; sys_write
 	mov ECX,ESP 					; ECX = salto de linea.
 	mov EDX,1 						; EDX = 1 byte.
 	int 0x80					 	; genera interrupcion.
-
-	pop ESI                         ; pop salto de linea.
-
+	pop EAX 						; pop de salto de linea.
 	ret
+
 
 %endif; CALCULADOR_METRICAS
