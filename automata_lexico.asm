@@ -1,9 +1,6 @@
 %ifndef AUTOMATA_LEXICO
 %define AUTOMATA_LEXICO
 
-%define true 1
-%define false 0
-
 %include "contador_metricas.asm"
 %include "analizador_lexico.asm"
 

@@ -2,6 +2,10 @@
 %define ANALIZADOR_LEXICO
 
 
+%define true 1
+%define false 0
+
+
 section .text
 	global verificar_letra
 	global verificar_separador
