@@ -3,6 +3,19 @@
 
 %include "contador_metricas.asm"
 
+section .data
+	msj_letras db "Cantidad de letras: "	; | Mensaje para mostrar antes de la cantidad de letras
+	msj_letras_len EQU $-msj_letras 		; |
+
+	msj_palabras db "Cantidad de palabras: "	; | Mensaje para mostrar antes de la cantidad de palabras
+	msj_palabras_len EQU $-msj_palabras 		; |
+
+	msj_lineas db "Cantidad de lineas: "	; | Mensaje para mostrar antes de la cantidad de lineas
+	msj_lineas_len EQU $-msj_lineas 		; |
+
+	msj_parrafos db "Cantidad de parrafos: "	; | Mensaje para mostrar antes de la cantidad de parrafos
+	msj_parrafos_len EQU $-msj_parrafos 		; |
+
 section .bss
 	buffer_leido resb 1000000  ; reserva espacio para un buffer de 1000000 bytes.
 
@@ -50,6 +63,12 @@ calcular_metricas :
 mostrar_resultados :
 	mov ESI,EBX  					; ESI = fd_salida
 
+	mov EAX, 4						; sys_write
+	mov EBX, ESI 					; EBX = fd_salida
+	mov ECX, msj_letras 			; ECX = mensaje de cantidad de letras
+	mov EDX, msj_letras_len 		; EDX = longitud del mensaje
+	int 0x80						; genera interrupcion
+
 	call recuperar_cant_letras      ; llamada a la rutina que devuelve la cantidad de letras (en ECX).
 	mov EAX, 4					    ; sys_write
 	mov EBX,ESI 					; EBX = fd_salida
@@ -63,6 +82,12 @@ mostrar_resultados :
 	mov EDX,1 						; EDX = 1 byte.
 	int 0x80					 	; genera interrupcion.
 
+	mov EAX, 4						; sys_write
+	mov EBX, ESI 					; EBX = fd_salida
+	mov ECX, msj_palabras 			; ECX = mensaje de cantidad de palabras
+	mov EDX, msj_palabras_len 		; EDX = longitud del mensaje
+	int 0x80						; genera interrupcion
+
 	call recuperar_cant_palabras	; llamada a la rutina que devuelve la cantidad de palabras (en ECX).
 	mov EAX, 4						; sys_write
 	mov EBX,ESI 					; EBX = fd_salida.
@@ -74,6 +99,12 @@ mostrar_resultados :
 	mov EDX,1 						; EDX = 1 byte.
 	int 0x80					 	; genera interrupcion.
 
+	mov EAX, 4						; sys_write
+	mov EBX, ESI 					; EBX = fd_salida
+	mov ECX, msj_lineas 			; ECX = mensaje de cantidad de lineas
+	mov EDX, msj_lineas_len 		; EDX = longitud del mensaje
+	int 0x80						; genera interrupcion
+
 	call recuperar_cant_lineas		; llamada a la rutina que devuelve la cantidad de lineas (en ECX).
 	mov EAX, 4						; sys_write
 	mov EBX,ESI 					; EBX = fd_salida
@@ -84,6 +115,12 @@ mostrar_resultados :
 	mov ECX,ESP 					; ECX = salto de linea.
 	mov EDX,1 						; EDX = 1 byte.
 	int 0x80					 	; genera interrupcion.
+
+	mov EAX, 4						; sys_write
+	mov EBX, ESI 					; EBX = fd_salida
+	mov ECX, msj_parrafos 			; ECX = mensaje de cantidad de parrafos
+	mov EDX, msj_parrafos_len 		; EDX = longitud del mensaje
+	int 0x80						; genera interrupcion
 
 	call recuperar_cant_parrafos	; llamada a la rutina que devuelve la cantidad de parrafos (en ECX).
 	mov EAX, 4						; sys_write
