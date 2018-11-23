@@ -7,7 +7,7 @@
 %define terminacion_anormal 3				  ; terminacion anormal por otras causas
 
 %include "automata_lexico.asm"
-%include "contador_metricas.asm"
+%include "calculador_metricas.asm"
 
 section .data
 	fd_entrada dd 0                ; reserva memoria para mantener el descriptor del archivo de entrada.
@@ -121,7 +121,9 @@ dos_parametros :
 ; Una vez que el control de los parametros fue realizado, esta rutina se encarga del procesamiento posterior.
 ; Asume que todo los archivos correspondientes pudieron abrirse exitosamente.
 procesar :
+	mov EBX,[fd_entrada]	   ; EBX = fd_entrada, ya que la rutina calcular_metricas espera dicho parametro.
 	call calcular_metricas     ; llamada a la rutina que calcula las metricas sobre el archivo de entrada.
+	mov EBX,[fd_salida]		   ; EBX = fd_salida, ya que la rutina mostrar_resultados espera dicho parametro.
 	call mostrar_resultados    ; llamada a la rutina que se encarga de mostrar los resultados.
 	call cerrar_archivos       ; llamada a la rutina que se encarga de cerrar los archivos usados.
 	push terminacion_normal    ; parametriza la condicion de terminacion.
@@ -165,68 +167,10 @@ cerrar_archivos :
     	ret 				   ; retorno
 
 
-; Rutina que se encarga de procesar el archivo de entrada y calcular las metricas.
-; Recibe un file_descriptor en el registro EBX.
-calcular_metricas :
-	leer_linea :
-		mov EAX,3                  ; sys_read
-		mov EBX,[fd_entrada]	   ; EBX = archivo de entrada.
-		mov ECX,buffer 			   ; buffer donde se almacenara lo leido del archivo.
-		mov EDX,1000 			   ; EDX = longitud de lo que se leera por consola. 
-								   ; Se asume un maximo de 1000 caracteres por linea. 
-		int 0x80                   ; genera interrupcion.
-
-	cmp EAX,0                      ; compara la cantidad de bytes que se pudieron leer del archivo con 0.
-	je finalizar                   ; si la cantidad de bytes leidas es 0, se alcanzo el EOF del archivo.
-
-	mov EBX,0 					   ; EBX funcionara como un registro de desplazamiento.
-								   ; Desplazandose en la memoria reservada para el buffer.
-
-	; Una vez que se ejecuta sys_read, el registro EAX contiene la cantidad de bytes que se pudieron leer del archivo.
-	; Esta cantidad de bytes se corresponde con la cantidad de caracteres leidos. Por lo tanto, se procede a analizar
-	; dichos caracteres uno por uno. Despalzandose en la memoria reservada para el buffer.
-	leer_caracter :
-		mov cl, byte[buffer+EBX]   ; ECX = caracter contenido en el buffer.
-		dec EAX                    ; decremento la cantidad de caracteres que faltan procesar.
-		call analizar_caracter     ; llamada a la rutina que analiza el caracter leido.
-		cmp EAX,0                  ; comparo la cantidad de caracteres que faltan procesar con 0.
-		je leer_linea              ; si ya no hay nada mas para procesar, vuelvo a leer otra linea.
-		inc EBX                    ; si faltan procesar caracteres, incremento el registro de desplazamiento.
-		jmp leer_caracter          ; proceso el siguiente caracter.
-
-	finalizar :
-		ret                        ; retorno
-
 _exit :
     mov EAX,1   ; sys_exit
 	pop EBX     ; condicion de terminacion.
 	int 0x80    ; genera interrupcion.
 
-mostrar_resultados :
-	mov EAX, 4
-	mov EBX, [fd_salida]
-	mov ECX, cant_letras
-	mov EDX, 1
-	int 0x80
-
-	mov EAX, 4
-	mov EBX, [fd_salida]
-	mov ECX, cant_palabras
-	mov EDX, 1
-	int 0x80
-
-	mov EAX, 4
-	mov EBX, [fd_salida]
-	mov ECX, cant_lineas
-	mov EDX, 1
-	int 0x80
-
-	mov EAX, 4
-	mov EBX, [fd_salida]
-	mov ECX, cant_parrafos
-	mov EDX, 1
-	int 0x80
-
-	ret
 
 %endif;CONTROL_PARAMETROS
