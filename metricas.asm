@@ -16,8 +16,7 @@ section .data
 	file_temp  dd "temporal.txt"   ; nombre del archivo temporal, sera utilizado cuando la cantidad de parametros sea 0.
 
 section .bss
-	buffer   resb 100              ; reserva espacio para un buffer de 100 bytes.
-	caracter resb 1                ; reserva espacio para un caracter leido de un archivo.
+	buffer   resb 1000             ; reserva espacio para un buffer de 100 bytes.
 
 section .text
 global _start
@@ -111,7 +110,7 @@ dos_parametros :
 
 	abrir_archSalida :
 		pop EBX								; se desapila es segundo parametro ARGV[2], que corresponde con el archivo de salida.
-		call abrir_archivo_escritura		; llamada a la rutina que trata de abrir el archivo de salida.
+		call abrir_archivo_salida    		; llamada a la rutina que trata de abrir el archivo de salida.
 		mov [fd_salida],EAX					; fd_salida = EAX
 		cmp EAX,0							; se verifica que el proceso "sys_open" haya sido exitoso.
 		jge procesar						; si se pudo abrir el archivo de salida, continua la ejecucion.
@@ -142,9 +141,12 @@ abrir_archivo  :
 
 
 ; Rutina que se encarga de abrir un archivo para escritura, cuyo file_name ya se encuentra en el registro EBX.
-abrir_archivo_escritura :
+abrir_archivo_salida :
 	mov EAX,5                  ; sys_open
-    mov ECX,1                  ; modo escritura, para el archivo.  
+    mov ECX,0x241              ; modo O_CREAT, O_TRUNC y O_WRONLY.
+    						   ; si el archivo no existe se crea O_CREAT.
+    						   ; si el archivo ya existe, se borra todo su contenido O_TRUNC.
+    						   ; si es posible abrirlo, lo hace en modo escritura O_WRONLY.
 	mov EDX,0777               ; permiso RWE para todos los usuarios.
 	int 0x80                   ; genera interrupcion.
 	ret                    	   ; retorno
