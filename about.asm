@@ -4,6 +4,8 @@
 %define LF 0xA
 
 section .data
+	global mostrar_about
+
 	mensaje_about 
 		db 	LF, LF
 		db 	"NOMBRE" , LF
@@ -13,22 +15,22 @@ section .data
 		db	"DESCRIPCION", LF
 		db	"	Metricas es una rapida calculadora de diversas metricas sobre textos.", LF
 		db	"	Los textos analizados pueden provenir de distintas fuentes, segun los ", LF
-		db	"	argumentos con los que se ejecute la aplicacion pueden utilizarse como", LF
+		db	"	argumentos con los que se ejecute la aplicacion. Pueden utilizarse como", LF
 		db	"	fuente tanto la consola del sistema como un archivo almacenado.", LF
-		db	"	De igual manera, las metricas pueden ser mostradas por consola, o pueden", LF
-		db	"	ser almacenadas en un nuevo archivo, esto tambien dependera del modo de ", LF
-		db	"	ejecucion de la aplicacion", LF, LF
+		db	"	De igual manera, los resultados pueden ser mostrados por consola, o ", LF
+		db	"	ser almacenados en un nuevo archivo, esto tambien dependera del modo de ", LF
+		db	"	ejecucion de la aplicacion.", LF, LF
 		db	"	En esta pagina encontraras los comandos que Metricas ofrece", LF, LF
 		db	"OPCIONES", LF
 		db	"	-h", LF
 		db	"		Muestra la pagina de ayuda de la aplicacion", LF, LF
 		db	"	<archivo_entrada>", LF
 		db	"		Calcula las metricas del texto contenido en el archivo", LF
-		db	"		de entrada proveido.", LF
+		db	"		de entrada provisto.", LF
 		db	"		Los resultados seran mostrados por la consola del sistema", LF, LF
 		db	"	<archivo_entrada> <archivo_salida>", LF
 		db	"		Calcula las metricas del texto contenido en el archivo", LF
-		db	"		de entrada proveido.", LF
+		db	"		de entrada provisto.", LF
 		db	"		Los resultados seran guardados en el archivo de salida indicado,", LF
 		db	"		este sera creado en caso de que no exista.", LF, LF
 		db	"AUTORES", LF

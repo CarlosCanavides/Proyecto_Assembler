@@ -1,5 +1,5 @@
-%ifndef CONTROL_PARAMETROS
-%define CONTROL_PARAMETROS
+%ifndef METRICAS
+%define METRICAS
 
 %define terminacion_normal 0                  ; terminacion normal
 %define terminacion_anormal_archEntrada 1     ; terminacion anormal por error en el archivo de entrada
@@ -8,6 +8,7 @@
 
 %include "automata_lexico.asm"
 %include "calculador_metricas.asm"
+%include "about.asm"
 
 section .data
 	fd_entrada dd 0                ; reserva memoria para mantener el descriptor del archivo de entrada.
@@ -89,6 +90,7 @@ cero_parametros :
 
 
 un_parametro  :
+	call verificar_ayuda					; se verifica si el usuario solicito ayuda.
 	call abrir_archivo                      ; llamada a la rutina que trata de abrir el archivo de entrada.
 	mov [fd_entrada],EAX                    ; fd_entrada = EAX
 	cmp EAX,0								; se verifica que el proceso "sys_open" haya sido exitoso.
@@ -167,10 +169,40 @@ cerrar_archivos :
     	ret 				   ; retorno
 
 
+; Rutina que verifica si el parametro ingresado se corresponde con la secuencia de ayuda "-h"
+; Esta rutina esperra ser llamada con call, y requiere modificar el registro ECX sin preocupacion.
+; Para llamar a esta rutina, se requiere un puntero a la direccion del parametro, en el registro EAX.
+; No se modificara el registro EAX, ya que contiene dicho puntero.
+verificar_ayuda :
+	mov ECX,0 				   ; set ECX = 0
+	mov CL, BYTE[EBX] 		   ; Low(ECX) = codigo ASCII del primer caracter del parametro.
+	cmp CL, "-"				   ; comparo el 1er caracter con "-".
+	jne posible_archivo 	   ; si el 1er caracter no es igual a "-", entonces el parametro
+							   ; probablemente es el nombre de un archivo.
+
+	mov CL, BYTE[EBX+1] 	   ; Low(ECX) = codigo ASCII del segundo caracter del parametro.
+	cmp CL, "h" 			   ; comparo el 2do caracter con "h".
+	jne posible_archivo        ; si el 2do caracter no es igual a "h", entonces el parametro
+							   ; probablemente es el nombre de un archivo.
+
+	mov CL, BYTE[EBX+2]		   ; Low(ECX) = codigo ASCII del tercer caracter del parametro.
+	cmp CL, "" 				   ; comparo el 1er caracter con "" (vacio).
+	je mostrar_ayuda 		   ; si el 3er caracter es igual a "", entonces la secuencia ingresada
+							   ; corresponde con "-h", por lo cual el usuario solicita ayuda.
+	posible_archivo :
+		ret         ; retorno
+
+	mostrar_ayuda :
+		call mostrar_about        ; muestra la ayuda
+		push terminacion_normal   ; parametriza la condicion de terminacion.
+		jmp _exit 				  ; se ejecuta la rutina de finalizacion.
+
+
+; Rutina de finalizacion
 _exit :
     mov EAX,1   ; sys_exit
 	pop EBX     ; condicion de terminacion.
 	int 0x80    ; genera interrupcion.
 
 
-%endif;CONTROL_PARAMETROS
+%endif;METRICAS
