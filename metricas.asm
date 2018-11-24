@@ -12,7 +12,7 @@
 section .data
 	fd_entrada dd 0                		; Reserva memoria para mantener el descriptor del archivo de entrada.
 	fd_salida  dd 1                		; Reserva memoria para mantener el descriptor del archivo de salida de los resultados. Por defecto es por consola.
-	file_temp  dw "archTemporal.txt"    ; Nombre del archivo temporal, sera utilizado cuando la cantidad de parametros sea 0.
+	file_temp  dd "archTemporal.txt",0  ; Nombre del archivo temporal, sera utilizado cuando la cantidad de parametros sea 0.
 	
 	msj_error0 db "Terminacion normal",0xA							; | Mensaje para mostrar cuando la ejecucion fue exitosa.
 	msj_error0_len EQU $-msj_error0 								; |
@@ -236,44 +236,47 @@ verificar_ayuda :
 		jmp _exit 				  ; Se ejecuta la rutina de finalizacion.
 
 
-
+; Rutina que mustra el mensaje de error correspondiente de acuerdo al contenido del registro EBX.
+; Espera ser llamada con call, desde la rutina _exit .
+; Muestra por pantalla el error. Para eso requiere que quien la llame, coloque el numero de error
+; en el registro EBX.
 mostrar_error :
-	cmp EBX,0
-	je exito
-	cmp EBX,1
-	je error1
-	cmp EBX,2
-	je error2
-	cmp EBX,3
-	je error3
+	cmp EBX,0    ; verifico si el error de terminacion es 0.
+	je exito 	 ; si el error de terminacion es 0, muestro el mensaje de error 0.
+	cmp EBX,1 	 ; verifico si el error de terminacion es 1.
+	je error1 	 ; si el error de terminacion es 1, muestro el mensaje de error 1.
+	cmp EBX,2 	 ; verifico si el error de terminacion es 2.
+	je error2 	 ; si el error de terminacion es 2, muestro el mensaje de error 2.
+	cmp EBX,3 	 ; verifico si el error de terminacion es 3.
+	je error3 	 ; si el error de terminacion es 3, muestro el mensaje de error 3.
 
 	exito :
-		mov ECX,msj_error0
-		mov EDX,msj_error0_len
-		jmp imprimir
+		mov ECX,msj_error0 		; ECX = mensaje de error 0.
+		mov EDX,msj_error0_len 	; EDX = longitud del mensaje de error.
+		jmp imprimir 			; imprimo el mensaje de error.
 
 	error1 :
-		mov ECX,msj_error1
-		mov EDX,msj_error1_len
-		jmp imprimir
+		mov ECX,msj_error1 		; ECX = mensaje de error 1.
+		mov EDX,msj_error1_len	; EDX = longitud del mensaje de error.
+		jmp imprimir 			; imprimo el mensaje de error.
 
 	error2 :
-		mov ECX,msj_error2
-		mov EDX,msj_error2_len
-		jmp imprimir
+		mov ECX,msj_error2 		; ECX = mensaje de error 2.
+		mov EDX,msj_error2_len	; EDX = longitud del mensaje de error.
+		jmp imprimir 			; imprimo el mensaje de error.
 
 	error3 :
-		mov ECX,msj_error3
-		mov EDX,msj_error3_len
-		jmp imprimir
+		mov ECX,msj_error3 		; ECX = mensaje de error 3.
+		mov EDX,msj_error3_len	; EDX = longitud del mensaje de error.
+		jmp imprimir 			; imprimo el mensaje de error.
 
 	imprimir :
-		push EBX
-		mov EAX,4
-		mov EBX,1
-		int 0x80
-		pop EBX
-		ret
+		push EBX	; preservo el contenido de EBX.
+		mov EAX,4	; sys_write
+		mov EBX,1	; STDOUT , salida estandar.
+		int 0x80	; genera interrupcion.
+		pop EBX 	; restauro el contenido de EBX.
+		ret 		; retorno.
 
 
 ; Rutina de finalizacion
